@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.nebula.service.dao.mapper.HistoryEventMapper">
+
+    <insert id="insertEvent" parameterType="Event">
+        insert into
+        history_events (id, registrationId,precedingId, eventType, instanceId, createdDate, data)
+        values(#{id}, #{registrationId}, #{precedingId}, #{eventType}, #{instanceId},
+        #{createdDate}, #{data})
+    </insert>
+
+    <select id="findByInstanceIdByPage" parameterType="String" resultType="Event">
+        select * from history_events where instanceId=#{instanceId} order by id ASC
+    </select>
+
+    <select id="countByInstanceId" parameterType="String" resultType="int">
+        select count(*) from history_events where instanceId=#{instanceId}
+    </select>
+
+    <select id="findRegistrationIdByInstanceId" parameterType="String" resultType="String">
+        select registrationId from history_events where instanceId=#{instanceId} limit 1
+    </select>
+
+    <select id="findInstancesByRegistrationIdByPage" parameterType="String"
+            resultType="Event">
+        select id, registrationId, instanceId, createdDate from history_events
+        <where>
+            <if test="registrationId != null">
+                registrationId=#{registrationId} and
+            </if>
+            eventType = 'WorkflowScheduledEvent'
+        </where>
+        order by id ASC
+    </select>
+
+    <select id="countInstancesByRegistrationId" parameterType="String"
+            resultType="int">
+        select count(1) from history_events
+        <where>
+            <if test="registrationId != null">
+                registrationId=#{registrationId} and
+            </if>
+            eventType = 'WorkflowScheduledEvent'
+        </where>
+    </select>
+
+    <select id="findWorkflowScheduledEvent" parameterType="String"
+            resultType="Event">
+        select id, registrationId, instanceId, createdDate from history_events where
+        instanceId=#{instanceId} and eventType = 'WorkflowScheduledEvent'
+        limit 1
+    </select>
+
+    <select id="findWorkflowCompletedEvent" parameterType="String"
+            resultType="Event">
+        select id, registrationId, instanceId, createdDate from history_events where
+        instanceId=#{instanceId} and eventType = 'WorkflowCompletedEvent'
+        limit 1
+    </select>
+</mapper>

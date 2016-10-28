@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.nebula.service.dao.mapper.WorkflowTimerMapper">
+
+    <insert id="insertTimer" parameterType="WorkflowTimer" useGeneratedKeys="true"
+            keyProperty="id">
+        <selectKey resultType="java.lang.Long" order="AFTER"
+                   keyProperty="id">
+            SELECT LAST_INSERT_ID() AS id
+        </selectKey>
+        insert into
+        workflow_timers (registrationId, username, realms, lockOwner,
+        lockExpireTime, nextFireTime,cronExpression, serial, createdDate, modifiedDate)
+        values(#{registrationId}, #{username}, #{realms}, #{lockOwner},
+        #{lockExpireTime}, #{nextFireTime}, #{cronExpression}, #{serial},now(), now())
+    </insert>
+
+    <delete id="deleteTimersByRegistrationId" parameterType="String">
+        delete from workflow_timers where registrationId=#{registrationId}
+    </delete>
+
+    <delete id="deleteTimerById" parameterType="Long">
+        delete from workflow_timers where id=#{id}
+    </delete>
+
+    <update id="updateNextFireTime"
+            parameterType="Map">
+        <![CDATA[
+           UPDATE workflow_timers set nextFireTime = #{nextFireTime},  lockOwner = null, modifiedDate = now()
+           where id = #{id}
+       ]]>
+    </update>
+
+    <update id="resetTimers" parameterType="String">
+        UPDATE workflow_timers set lockOwner = null, lockExpireTime=null, modifiedDate = now()
+        where registrationId=#{registrationId}
+    </update>
+
+    <select id="findByRegistrationId" parameterType="Map"
+            resultType="WorkflowTimer">
+        select * from workflow_timers where registrationId=#{registrationId}
+    </select>
+
+    <update id="update" parameterType="WorkflowTimer">
+        <![CDATA[
+         UPDATE workflow_timers SET  nextFireTime=#{nextFireTime},  serial=#{serial}, cronExpression=#{cronExpression}, lockOwner = null, modifiedDate = now()
+                where id = #{id}
+         ]]>
+    </update>
+
+    <select id="findRunnableTimersByLockOwner" parameterType="String"
+            resultType="WorkflowTimer">
+        <![CDATA[ select * from workflow_timers where lockOwner=#{lockOwner} and nextFireTime <= now() order by id ASC  ]]>
+    </select>
+
+    <update id="lockTimers" parameterType="Map">
+        <![CDATA[
+           UPDATE workflow_timers set lockOwner = #{lockOwner}, lockExpireTime = date_add(now(), interval #{lockExpireDelay} second), modifiedDate = now()
+           where nextFireTime <= now() and (lockOwner is null or lockExpireTime is null or lockExpireTime <= now())
+       ]]>
+    </update>
+
+
+</mapper>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.nebula.service.dao.mapper.HeartbeatMapper">
+
+    <insert id="insertHeartbeat" parameterType="Heartbeat">
+        insert into
+        heartbeats(id, host, ip, processId, registrationId, workingDir, heartbeatTime)
+        values(#{id}, #{host},#{ip},#{processId}, #{registrationId}, #{workingDir}, now())
+    </insert>
+
+    <update id="update" parameterType="String">
+        update heartbeats set heartbeatTime = now(), processId=#{processId} where
+        id=#{id}
+    </update>
+
+    <select id="find" parameterType="Heartbeat" resultType="Heartbeat">
+        select *
+        from heartbeats where registrationId=#{registrationId} and host=#{host} and ip=#{ip} and
+        workingDir= #{workingDir}
+    </select>
+
+    <select id="findByRegistrationId" parameterType="String" resultType="Heartbeat">
+        select *
+        from heartbeats where registrationId=#{registrationId} order by heartbeatTime DESC
+    </select>
+
+    <delete id="delete" parameterType="String">
+        delete from heartbeats where id=#{id}
+    </delete>
+
+</mapper>

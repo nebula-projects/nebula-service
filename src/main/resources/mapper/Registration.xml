@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.nebula.service.dao.mapper.RegistrationMapper">
+
+    <insert id="insertRegistration" parameterType="Registration">
+        insert into registrations(id, user, name,
+        version, type, enabled, createdDate, modifiedDate, data)
+        values(#{id}, #{user}, #{name},#{version},#{type}, #{enabled},
+        now(), now(), #{data})
+    </insert>
+
+    <update id="update" parameterType="Registration">
+        update registrations set data = #{data}, modifiedDate=now()
+        where user = #{user} and name = #{name} and version = #{version} and `type` = #{type}
+    </update>
+
+    <select id="find" parameterType="Registration" resultType="Registration">
+        select * from registrations where user=#{user} and name=#{name} and version=#{version}
+        and type=#{type}
+    </select>
+
+    <select id="findEnabled" parameterType="Registration" resultType="Registration">
+        select * from registrations where user=#{user} and name=#{name} and version=#{version}
+        and type=#{type} and enabled=true
+    </select>
+
+    <select id="findById" parameterType="String" resultType="Registration">
+        select * from registrations where id = #{id}
+    </select>
+
+    <select id="findRegistrations" resultType="Registration">
+        select id, user, name, version, type, enabled, createdDate, modifiedDate, data from
+        registrations where 1=1
+        <if test="user != null">
+            and user = #{user}
+        </if>
+        <if test="workflowName != null">
+            and name=#{workflowName}
+        </if>
+        <if test="nodeType != null">
+            and type=#{nodeType}
+        </if>
+        <if test="createdBefore != null">
+            <![CDATA[ and createdDate <= #{createdBefore} ]]>
+        </if>
+        <if test="createdAfter != null">
+            <![CDATA[ and createdDate >= #{createdAfter} ]]>
+        </if>
+        order by createdDate desc
+    </select>
+
+    <update id="enable" parameterType="Registration">
+        update registrations set enabled = #{enabled}, modifiedDate=now()
+        <where>
+            id=#{registrationId}
+        </where>
+    </update>
+
+    <select id="findLatestRegistration" parameterType="Registration" resultType="Registration">
+        select * from registrations where user=#{user} and name=#{name} and type=#{type} order by
+        createdDate desc limit 1;
+    </select>
+
+    <select id="countRegistrations" resultType="int">
+        select count(1) from
+        registrations where 1=1
+        <if test="user != null">
+            and user = #{user}
+        </if>
+        <if test="workflowName != null">
+            and name=#{workflowName}
+        </if>
+        <if test="nodeType != null">
+            and type=#{nodeType}
+        </if>
+        <if test="createdBefore != null">
+            <![CDATA[ and createdDate <= #{createdBefore} ]]>
+        </if>
+        <if test="createdAfter != null">
+            <![CDATA[ and createdDate >= #{createdAfter} ]]>
+        </if>
+    </select>
+
+</mapper>

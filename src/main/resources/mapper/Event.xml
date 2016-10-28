@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.nebula.service.dao.mapper.EventMapper">
+
+    <insert id="insertEvent" parameterType="Event" useGeneratedKeys="true"
+            keyProperty="id">
+        insert into
+        events (registrationId,precedingId, eventType,
+        instanceId, createdDate, data)
+        values(#{registrationId}, #{precedingId}, #{eventType}, #{instanceId}, now(), #{data})
+    </insert>
+
+    <select id="findByInstanceIdByPage" parameterType="String"
+            resultType="Event">
+        select * from events where instanceId=#{instanceId} order
+        by id ASC
+    </select>
+
+    <select id="countByInstanceId" parameterType="String"
+            resultType="int">
+        select count(*) from events where instanceId=#{instanceId}
+    </select>
+
+    <select id="findRegistrationIdByInstanceId" parameterType="String"
+            resultType="String">
+        select registrationId from events where instanceId=#{instanceId} limit 1
+    </select>
+
+    <select id="findInstancesByRegistrationIdByPage" parameterType="String"
+            resultType="Event">
+        select id, registrationId, instanceId, createdDate from events
+        <where>
+            <if test="registrationId != null">
+                registrationId=#{registrationId} and
+            </if>
+            eventType = 'WorkflowScheduledEvent'
+        </where>
+        order by id ASC
+    </select>
+
+    <select id="countInstancesByRegistrationId" parameterType="String"
+            resultType="int">
+        select count(1) from events
+        <where>
+            <if test="registrationId != null">
+                registrationId=#{registrationId} and
+            </if>
+            eventType = 'WorkflowScheduledEvent'
+        </where>
+    </select>
+
+    <select id="findWorkflowScheduledEvent" parameterType="String"
+            resultType="Event">
+        select id, registrationId, instanceId, createdDate from events where
+        instanceId=#{instanceId} and eventType = 'WorkflowScheduledEvent'
+        limit 1
+    </select>
+
+    <select id="findWorkflowCompletedEvent" parameterType="String"
+            resultType="Event">
+        select id, registrationId, instanceId, createdDate from events where
+        instanceId=#{instanceId} and eventType = 'WorkflowCompletedEvent'
+        limit 1
+    </select>
+
+    <select id="countWorkflowByRidAndType" resultType="int">
+        select count(id) from events where eventType=#{eventType} and
+        registrationId in
+        <foreach collection="registrationId" item="id" index="index"
+                 open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+
+    <select id="findByInstanceIdAndTypeAndPrecedingId" resultType="Event">
+        select * from events where instanceId=#{instanceId} and eventType
+        =#{eventType} and precedingId=#{precedingId}
+    </select>
+
+    <delete id="deleteInstance" parameterType="String">
+        delete from events where instanceId=#{instanceId}
+    </delete>
+
+    <select id="countInstancesByRegistrationIdAndBacklogDate"
+            resultType="int">
+        select count(distinct instanceId) from events where
+        registrationId in
+        <foreach collection="registrationIds" item="id" index="index"
+                 open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+        and createdDate &lt; #{backlogPeriodDate}
+        and eventType = 'WorkflowScheduledEvent'
+    </select>
+</mapper>

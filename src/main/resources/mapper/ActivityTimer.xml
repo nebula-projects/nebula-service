@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.nebula.service.dao.mapper.ActivityTimerMapper">
+
+    <insert id="insertTimer" parameterType="ActivityTimer" useGeneratedKeys="true"
+            keyProperty="id">
+        <selectKey resultType="java.lang.Long" order="AFTER"
+                   keyProperty="id">
+            SELECT LAST_INSERT_ID() AS id
+        </selectKey>
+        insert into
+        activity_timers (registrationId, instanceId,eventId, username, realms, lockOwner,
+        lockExpireTime, nextFireTime, `interval`,createdDate, modifiedDate)
+        values(#{registrationId}, #{instanceId}, #{eventId}, #{username}, #{realms}, #{lockOwner},
+        #{lockExpireTime},
+        <choose>
+            <when test="nextFireTime == null">date_add(now(), interval #{interval} second)</when>
+            <otherwise>#{nextFireTime}</otherwise>
+        </choose>
+        , #{interval}, now(), now())
+    </insert>
+
+    <delete id="deleteTimerByInstanceIdAndEventId" parameterType="Map">
+        delete from activity_timers where instanceId = #{instanceId} and eventId = #{eventId}
+    </delete>
+
+    <delete id="deleteTimersByInstanceId" parameterType="String">
+        delete from activity_timers where instanceId=#{instanceId}
+    </delete>
+
+    <delete id="deleteTimerById" parameterType="Long">
+        delete from activity_timers where id=#{id}
+    </delete>
+
+    <select id="findRunnableTimersByLockOwner" parameterType="String"
+            resultType="ActivityTimer">
+        <![CDATA[ select * from activity_timers where lockOwner=#{lockOwner} and nextFireTime <= now() order by id ASC  ]]>
+    </select>
+
+    <update id="lockTimers" parameterType="Map">
+        <![CDATA[
+           UPDATE activity_timers set lockOwner = #{lockOwner}, lockExpireTime = date_add(now(), interval #{lockExpireDelay} second), modifiedDate = now()
+           where nextFireTime <= now() and (lockOwner is null or lockExpireTime is null or lockExpireTime <= now())
+       ]]>
+    </update>
+
+
+</mapper>
