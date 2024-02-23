@@ -36,9 +36,6 @@ public class GetHeartbeatsProcessor extends
   @Autowired
   private HeartbeatMapper heartbeatMapper;
 
-//	@Autowired
-//	private HeartbeatCache heartbeatCache;
-
   @Autowired
   public GetHeartbeatsProcessor(GetHeartbeatsRequestValidator validator) {
     super(validator);
